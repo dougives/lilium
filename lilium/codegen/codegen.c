@@ -150,17 +150,27 @@ void* gen_xop_set()
 
 	*nextfree = 0xc3;
 	while (!*++nextfree
-		&& nextfree < (uint8_t*)pages + BLOCK_SIZE)
+		&& nextfree < (uint8_t*)pages + BLOCK_SIZE - 1)
 	{	
 		*nextfree = 0xcc;
 	}
 	return pages;
 }
 
+
+static void* blocks[0x4000];
+
 int main(void)
 {
 	void (*pages)();
-	pages = gen_xop_set();
-	pages();
+
+	int x = 0;
+
+	for (int i = 0; i < 0x4000; i++)
+	{
+		blocks[i] = gen_xop_set();
+	}
+
+
 	return 0;
 }
