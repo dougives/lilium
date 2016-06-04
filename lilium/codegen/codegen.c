@@ -28,8 +28,28 @@
 #define OP_XOP_VPPERM 0xa30000
 
 #define BLOCK_SIZE 0x10000
-
 #define MAX_GENSIZE 0x20
+
+size_t gen_output(void* start)
+{
+	uint8_t* nextfree = (uint8_t*)start;
+	uint32_t random = 0;
+	while (rand_s(&random)) {}
+	random &= 0x0f;
+
+	*((uint32_t*)nextfree)++ = 0x7cfa3b48u; // cmp, rsi, rax   
+	*((uint16_t*)nextfree)++ = 0xc301u;		// jl 0x01
+	*nextfree++ = 0x66;						// ret
+	if (random & 0x08)
+	{
+		*nextfree++ = 0x44;
+	}
+	// prefix, mov
+	*((uint16_t*)nextfree)++ = 0x7f0fu;
+	*nextfree++ = 0x07 + ((random & 0x07) << 3);
+	*((uint32_t*)nextfree)++ = 0x10c78348u; // add rdi, 0x10
+	return (size_t)(nextfree - (uint8_t*)start);
+}
 
 size_t gen_input(void* start)
 {
@@ -37,6 +57,9 @@ size_t gen_input(void* start)
 	uint32_t random = 0;
 	while (rand_s(&random)) {}
 	random &= 0x0f;
+
+	*((uint32_t*)nextfree)++ = 0x7df03b48u; // cmp, rsi, rax   
+	*nextfree++ = 0x08u;					// jge 0x08
 	*nextfree++ = 0x66;
 	if (random & 0x08)
 		*nextfree++ = 0x44;
@@ -44,9 +67,6 @@ size_t gen_input(void* start)
 	*((uint16_t*)nextfree)++ = 0x6f0fu;
 	*nextfree++ = 0x06 + ((random & 0x07) << 3);
 	*((uint32_t*)nextfree)++ = 0x10c68348u; // add rsi, 0x10
-	*((uint32_t*)nextfree)++ = 0x7cf03b48u; // cmp, rsi, rax   
-	*((uint16_t*)nextfree)++ = 0xc301u;		// jl 0x01
-											// ret (output is full)
 	return (size_t)(nextfree - (uint8_t*)start);
 }
 
@@ -97,10 +117,15 @@ size_t gen_xop_vpperm(void* start)
 	return written;
 }
 
+
 void* gen_xop_set()
 {
 	uint32_t random = 0;
-	void* pages = VirtualAlloc(NULL, BLOCK_SIZE, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	void* pages = VirtualAlloc(
+		NULL, 
+		BLOCK_SIZE, 
+		MEM_COMMIT | MEM_RESERVE, 
+		PAGE_EXECUTE_READWRITE);
 	uint8_t* nextfree = (uint8_t*)pages;
 	nextfree += gen_header((void*)nextfree);
 
@@ -114,10 +139,14 @@ void* gen_xop_set()
 			continue;
 		}
 
+		if (random == 0x00)
+		{
+			nextfree += gen_output((void*)nextfree);
+			continue;
+		}
+
 		nextfree += gen_xop_vpperm((void*)nextfree);
 	}
-
-
 
 	*nextfree = 0xc3;
 	while (!*++nextfree
