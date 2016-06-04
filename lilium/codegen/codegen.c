@@ -29,6 +29,27 @@
 
 #define BLOCK_SIZE 0x10000
 
+#define MAX_GENSIZE 0x20
+
+size_t gen_input(void* start)
+{
+	uint8_t* nextfree = (uint8_t*)start;
+	uint32_t random = 0;
+	while (rand_s(&random)) {}
+	random &= 0x0f;
+	*nextfree++ = 0x66;
+	if (random & 0x08)
+		*nextfree++ = 0x44;
+	// prefix, mov
+	*((uint16_t*)nextfree)++ = 0x6f0fu;
+	*nextfree++ = 0x06 + ((random & 0x07) << 3);
+	*((uint32_t*)nextfree)++ = 0x10c68348u; // add rsi, 0x10
+	*((uint32_t*)nextfree)++ = 0x7cf03b48u; // cmp, rsi, rax   
+	*((uint16_t*)nextfree)++ = 0xc301u;		// jl 0x01
+											// ret (output is full)
+	return (size_t)(nextfree - (uint8_t*)start);
+}
+
 size_t gen_header(void* start)
 {
 	// rcx -> rsi -> start of input data
@@ -49,44 +70,58 @@ size_t gen_header(void* start)
 	// add rax, rsi
 	// add rdx, rdi
 
-	uint64_t* ulptr = (uint64_t*)start;
-	*ulptr++ = 0x8b48f18b48535756uL;
-	*ulptr++ = 0x48c18b48c88b49fauL;
-	*ulptr++ = 0xd70348c60348d18buL;
-	return 24;
+	uint64_t* nextfree = (uint64_t*)start;
+	*nextfree++ = 0x8b48f18b48535756uL;
+	*nextfree++ = 0x48c18b48c88b49fauL;
+	*nextfree++ = 0xd70348c60348d18buL;
+	return (size_t)((uint8_t*)nextfree - (uint8_t*)start);
 }
 
-size_t gen_xop_vpperm(void* start, size_t size)
+size_t gen_xop_vpperm(void* start)
 {
 	uint64_t* nextfree = (uint64_t*)start;
 	uint64_t random = 0;
 	size_t written = 0;
-	while ((uint8_t*)nextfree < (uint8_t*)start + size - 8)
-	{
-		random ^= random >> 13;
-		while (rand_s((uint32_t*)&random)) {}
-		random <<= 32;
-		while (rand_s((uint32_t*)&random)) {}
-		// vpperm: xop ~rxb.08 W.src1.000 0xa3 /r ib
-		// but backwards ...
-		// and out junk, or in goods
-		random &= 0xf03f00f8e000u;
-		random |= 0x00c0a300088fu;
-		*nextfree = random;
-		nextfree = (uint64_t*)((uint8_t*)nextfree + 6);
-		written += 6;
-	}
+	random ^= random >> 13;
+	while (rand_s((uint32_t*)&random)) {}
+	random <<= 32;
+	while (rand_s((uint32_t*)&random)) {}
+	// vpperm: xop ~rxb.08 W.src1.000 0xa3 /r ib
+	// but backwards ...
+	// and out junk, or in goods
+	random &= 0xf03f00f8e000u;
+	random |= 0x00c0a300088fu;
+	*nextfree = random;
+	nextfree = (uint64_t*)((uint8_t*)nextfree + 6);
+	written += 6;
 	return written;
 }
 
 void* gen_xop_set()
 {
+	uint32_t random = 0;
 	void* pages = VirtualAlloc(NULL, BLOCK_SIZE, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 	uint8_t* nextfree = (uint8_t*)pages;
 	nextfree += gen_header((void*)nextfree);
-	nextfree += gen_xop_vpperm((void*)nextfree, BLOCK_SIZE - (nextfree - pages));
-	*nextfree = 0xcc;
-	while (!*++nextfree)
+
+	while (nextfree < (uint8_t*)pages + BLOCK_SIZE - MAX_GENSIZE - 1)
+	{
+		while (rand_s(&random)) {}
+		random &= 0x0f;
+		if (random == 0x0f)
+		{
+			nextfree += gen_input((void*)nextfree);
+			continue;
+		}
+
+		nextfree += gen_xop_vpperm((void*)nextfree);
+	}
+
+
+
+	*nextfree = 0xc3;
+	while (!*++nextfree
+		&& nextfree < (uint8_t*)pages + BLOCK_SIZE)
 	{	
 		*nextfree = 0xcc;
 	}

@@ -23,6 +23,18 @@ scratch_asm proc
 	int 3
 	int 3
 	int 3
+
+
+	movdqa xmm0, xmmword ptr [rsi]
+	movdqa xmm1, xmmword ptr [rsi]
+	movdqa xmm2, xmmword ptr [rsi]
+	movdqa xmm3, xmmword ptr [rsi]
+	movdqa xmm4, xmmword ptr [rsi]
+	movdqa xmm5, xmmword ptr [rsi]
+	movdqa xmm6, xmmword ptr [rsi]
+	movdqa xmm7, xmmword ptr [rsi]
+
+
 	int 3
 	int 3
 	int 3
@@ -31,6 +43,9 @@ scratch_asm proc
 	int 3
 	int 3
 	int 3
+	int 3
+	int 3
+	int 3	
 	int 3
 	int 3
 	int 3
@@ -38,19 +53,30 @@ scratch_asm proc
 	movdqa xmm0, xmmword ptr [rsi]
 	add rsi, 16
 	cmp rsi, rax
-	jge scratch_exit
+	jl label1
+	ret
+	label1:
+
 	movdqa xmm7, xmmword ptr [rsi]
 	add rsi, 16
 	cmp rsi, rax
-	jge scratch_exit
+	jl label2
+	ret
+	label2:
+
 	movdqa xmm8, xmmword ptr [rsi]
 	add rsi, 16
 	cmp rsi, rax
-	jge scratch_exit
+	jl label3
+	ret
+	label3:
+
 	movdqa xmm15, xmmword ptr [rsi]
 	add rsi, 16
 	cmp rsi, rax
-	jge scratch_exit
+	jl label4
+	ret
+	label4:
 
 
 
