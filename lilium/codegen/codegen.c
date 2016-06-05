@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <Windows.h>
+#include <stdio.h>
+#include <stdbool.h>
 
 #define PREFIX1_LOCK 0x0f
 #define PREFIX1_REPNE 0xf2
@@ -34,7 +36,7 @@ size_t gen_output(void* start)
 {
 	uint8_t* nextfree = (uint8_t*)start;
 	uint32_t random = 0;
-	while (rand_s(&random)) {}
+	rand_s(&random);
 	random &= 0x0f;
 
 	*((uint32_t*)nextfree)++ = 0x7cfa3b48u; // cmp, rsi, rax   
@@ -55,7 +57,7 @@ size_t gen_input(void* start)
 {
 	uint8_t* nextfree = (uint8_t*)start;
 	uint32_t random = 0;
-	while (rand_s(&random)) {}
+	rand_s(&random);
 	random &= 0x0f;
 
 	*((uint32_t*)nextfree)++ = 0x7df03b48u; // cmp, rsi, rax   
@@ -103,9 +105,9 @@ size_t gen_xop_vpperm(void* start)
 	uint64_t random = 0;
 	size_t written = 0;
 	random ^= random >> 13;
-	while (rand_s((uint32_t*)&random)) {}
+	rand_s((uint32_t*)&random);
 	random <<= 32;
-	while (rand_s((uint32_t*)&random)) {}
+	rand_s((uint32_t*)&random);
 	// vpperm: xop ~rxb.08 W.src1.000 0xa3 /r ib
 	// but backwards ...
 	// and out junk, or in goods
@@ -131,7 +133,7 @@ void* gen_xop_set()
 
 	while (nextfree < (uint8_t*)pages + BLOCK_SIZE - MAX_GENSIZE - 1)
 	{
-		while (rand_s(&random)) {}
+		rand_s(&random);
 		random &= 0x0f;
 		if (random == 0x0f)
 		{
@@ -158,19 +160,31 @@ void* gen_xop_set()
 }
 
 
-static void* blocks[0x4000];
 
-int main(void)
+
+void thread()
 {
-	void (*pages)();
-
-	int x = 0;
-
-	for (int i = 0; i < 0x4000; i++)
+	void* blocks[0x1000];
+	for (int i = 0; i < 0x1000; i++)
 	{
 		blocks[i] = gen_xop_set();
 	}
+	printf(".");
+}
 
+int main(void)
+{
+	LPDWORD threadid = NULL;
+	CreateThread(NULL, 0, thread, NULL, 0, threadid);
+	CreateThread(NULL, 0, thread, NULL, 0, threadid);
+	CreateThread(NULL, 0, thread, NULL, 0, threadid);
+	CreateThread(NULL, 0, thread, NULL, 0, threadid);
+	CreateThread(NULL, 0, thread, NULL, 0, threadid);
+	CreateThread(NULL, 0, thread, NULL, 0, threadid);
+	CreateThread(NULL, 0, thread, NULL, 0, threadid);
+	CreateThread(NULL, 0, thread, NULL, 0, threadid);
+	while (true)
+		Sleep(100);
 
 	return 0;
 }
