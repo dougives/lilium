@@ -8,25 +8,17 @@
 #include <Windows.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include "codegen.h"
 
 #define OP_JCCREL16 0x820f
 #define OP_XOP	0x8f
-#define BLOCK_SIZE 0x10000
-#define MAX_GEN_SIZE 0x20
-#define BOUND_BUFFER_SIZE 0x10000
+#define MAX_GEN_SIZE 0x20 // this isn't enforced ...
 #define BOUND_BUFFER_MASK (BOUND_BUFFER_SIZE - 1)
 #define MIN_LOOP_SIZE 0x04
 
-typedef struct
-{
-	void* bounds[BOUND_BUFFER_SIZE];
-	size_t free;
-	size_t count;
-} BoundBuffer;
-
 //BoundBuffer boundbuffer;
 
-void gen_add_boundry(const void* boundry, BoundBuffer* boundbuffer)
+static void gen_add_boundry(const void* boundry, BoundBuffer* boundbuffer)
 {
 	boundbuffer->bounds[
 		++boundbuffer->free
@@ -35,7 +27,7 @@ void gen_add_boundry(const void* boundry, BoundBuffer* boundbuffer)
 	return;
 }
 
-size_t gen_jcc(const void* ptr, BoundBuffer* boundbuffer)
+static size_t gen_jcc(const void* ptr, BoundBuffer* boundbuffer)
 {
 	uint32_t* nextfree = (uint8_t*)ptr;
 	uint32_t random = 0;
@@ -57,7 +49,7 @@ size_t gen_jcc(const void* ptr, BoundBuffer* boundbuffer)
 			return (size_t)((uint8_t*)nextfree - (uint8_t*)ptr);
 }
 
-size_t gen_sse41_ptest(const void* ptr)
+static size_t gen_sse41_ptest(const void* ptr)
 {
 	uint8_t* nextfree = (uint8_t*)ptr;
 	uint32_t random = 0;
@@ -74,7 +66,7 @@ size_t gen_sse41_ptest(const void* ptr)
 	return (size_t)(nextfree - (uint8_t*)ptr);
 }
 
-size_t gen_output(const void* ptr)
+static size_t gen_output(const void* ptr)
 {
 	uint8_t* nextfree = (uint8_t*)ptr;
 	uint32_t random = 0;
@@ -95,7 +87,7 @@ size_t gen_output(const void* ptr)
 	return (size_t)(nextfree - (uint8_t*)ptr);
 }
 
-size_t gen_input(const void* ptr)
+static size_t gen_input(const void* ptr)
 {
 	uint8_t* nextfree = (uint8_t*)ptr;
 	uint32_t random = 0;
@@ -114,7 +106,7 @@ size_t gen_input(const void* ptr)
 	return (size_t)(nextfree - (uint8_t*)ptr);
 }
 
-size_t gen_header(const void* ptr)
+static size_t gen_header(const void* ptr)
 {
 	// rcx -> rsi -> start of input data
 	// rdx -> rdi -> start of output data
@@ -141,7 +133,7 @@ size_t gen_header(const void* ptr)
 	return (size_t)((uint8_t*)nextfree - (uint8_t*)ptr);
 }
 
-size_t gen_xop_vpcmov(const void* ptr)
+static size_t gen_xop_vpcmov(const void* ptr)
 {
 	// vpcmov xop ~rxb.08 W.vvvv.000 0xa2 /r ib[7:4]
 	uint64_t* nextfree = (uint64_t*)ptr;
@@ -157,7 +149,7 @@ size_t gen_xop_vpcmov(const void* ptr)
 	return 6;
 }
 
-size_t gen_xop_vpcom(const void* ptr)
+static size_t gen_xop_vpcom(const void* ptr)
 {
 	// vpcom xop ~rxb.08 0.vvvv.000 0xcc /r ib
 	uint64_t* nextfree = (uint64_t*)ptr;
@@ -173,7 +165,7 @@ size_t gen_xop_vpcom(const void* ptr)
 	return 6;
 }
 
-size_t gen_xop_vprot(const void* ptr)
+static size_t gen_xop_vprot(const void* ptr)
 {
 	// vprot xop ~rxb.09 W.vvvv.000 [0x90-0x93] /r
 	uint64_t* nextfree = (uint64_t*)ptr;
@@ -189,7 +181,7 @@ size_t gen_xop_vprot(const void* ptr)
 	return 5;
 }
 
-size_t gen_xop_vpperm(const void* ptr)
+static size_t gen_xop_vpperm(const void* ptr)
 {
 	uint64_t* nextfree = (uint64_t*)ptr;
 	uint64_t random = 0;
