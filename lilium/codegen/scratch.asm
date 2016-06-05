@@ -17,6 +17,25 @@ scratch_asm proc
 	int 3
 	int 3
 	int 3
+
+	ptest xmm0, xmm0
+	ptest xmm0, xmm1
+	ptest xmm0, xmm2
+	ptest xmm0, xmm3
+	ptest xmm0, xmm0
+	ptest xmm1, xmm0
+	ptest xmm2, xmm0
+	ptest xmm3, xmm0
+
+	ptest xmm0, xmm8
+	ptest xmm8, xmm0
+	ptest xmm8, xmm8 
+
+	ptest xmm7, xmm15
+	ptest xmm0, xmm7
+	ptest xmm15, xmm0
+	ptest xmm15, xmm15 
+
 	int 3
 	int 3
 	int 3
