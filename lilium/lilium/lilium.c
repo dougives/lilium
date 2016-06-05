@@ -82,6 +82,13 @@ int main(void)
 	if (open_files() != ERROR_SUCCESS)
 		return lasterror;
 
+
+
+
+
+
+
+
 	if (close_files() != ERROR_SUCCESS)
 		return lasterror;
 

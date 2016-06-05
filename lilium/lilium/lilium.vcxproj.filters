@@ -21,5 +21,8 @@
     <ClCompile Include="codegen.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="fitness.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
