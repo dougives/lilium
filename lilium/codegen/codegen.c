@@ -15,6 +15,7 @@
 #define MAX_GEN_SIZE 0x20
 #define BOUND_BUFFER_SIZE 0x10000
 #define BOUND_BUFFER_MASK (BOUND_BUFFER_SIZE - 1)
+#define MIN_LOOP_SIZE 0x04
 
 typedef struct
 {
@@ -43,13 +44,17 @@ size_t gen_jcc(void* ptr)
 	*((uint16_t*)nextfree)++ = OP_JCCREL16 | (random & 0x05);
 	random >>= 8;
 
+	// calculate offset ...
 	*nextfree++ =
 		(uint8_t*)boundbuffer.bounds[
-			(boundbuffer.free - (random % boundbuffer.count - 1) - 1)
+			(boundbuffer.free 
+				- (random 
+					% (boundbuffer.count - MIN_LOOP_SIZE)) 
+				- MIN_LOOP_SIZE)
 			& BOUND_BUFFER_MASK]
-		- (uint8_t*)ptr;
+		- (uint8_t*)ptr + 6;
 
-	return (size_t)(nextfree - (uint8_t*)ptr);
+	return (size_t)((uint8_t*)nextfree - (uint8_t*)ptr);
 }
 
 size_t gen_sse41_ptest(void* ptr)
@@ -57,7 +62,7 @@ size_t gen_sse41_ptest(void* ptr)
 	uint8_t* nextfree = (uint8_t*)ptr;
 	uint32_t random = 0;
 	rand_s(&random);
-	random &= 0xff;
+	//random &= 0xff;
 	*nextfree++ = 0x66;	
 	if (random & 0x05)
 	{
@@ -65,6 +70,7 @@ size_t gen_sse41_ptest(void* ptr)
 	}
 
 	*((uint32_t*)nextfree)++ = 0xc017380fu | (random & 0x3f000000u);
+	//printf("0x%08x\n", (random & 0x3f000000u));
 	return (size_t)(nextfree - (uint8_t*)ptr);
 }
 
@@ -152,7 +158,7 @@ size_t gen_xop_vpcmov(void* ptr)
 	return 6;
 }
 
-size_t gen_xop_vpcomb(void* ptr)
+size_t gen_xop_vpcom(void* ptr)
 {
 	// vpcom xop ~rxb.08 0.vvvv.000 0xcc /r ib
 	uint64_t* nextfree = (uint64_t*)ptr;
@@ -214,21 +220,44 @@ void* gen_xop_set()
 
 	while (nextfree < (uint8_t*)pages + BLOCK_SIZE - MAX_GEN_SIZE - 1)
 	{
+		boundbuffer.bounds[boundbuffer.free] = (void*)nextfree;
 		rand_s(&random);
 		random &= 0x0f;
-		if (random == 0x0f)
+		switch (random)
 		{
-			nextfree += gen_input((void*)nextfree);
-			continue;
+			case 0x0f:
+				nextfree += gen_input((void*)nextfree);
+				break;
+
+			case 0x00:
+				nextfree += gen_output((void*)nextfree);
+				break;
+
+			case 0x01:
+				nextfree += gen_xop_vprot((void*)nextfree);
+				break;
+
+			case 0x02:
+				nextfree += gen_xop_vpcom((void*)nextfree);
+				nextfree += gen_xop_vpcmov((void*)nextfree);
+				break;
+
+			case 0x03:
+				if (boundbuffer.count > MIN_LOOP_SIZE * 4)
+				{
+					nextfree += gen_sse41_ptest((void*)nextfree);
+					nextfree += gen_jcc((void*)nextfree);
+					break;
+				}
+
+			default:
+				nextfree += gen_xop_vpperm((void*)nextfree);
+				break;
 		}
 
-		if (random == 0x00)
-		{
-			nextfree += gen_output((void*)nextfree);
-			continue;
-		}
-
-		nextfree += gen_xop_vpperm((void*)nextfree);
+		if (boundbuffer.count < BOUND_BUFFER_SIZE)
+			boundbuffer.count++;
+		boundbuffer.free = ++boundbuffer.free & BOUND_BUFFER_MASK;
 	}
 
 	*nextfree = 0xc3;
