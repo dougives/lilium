@@ -29,8 +29,8 @@ BoundBuffer boundbuffer;
 void gen_add_boundry(void* boundry)
 {
 	boundbuffer.bounds[
-		++boundbuffer.free 
-		& BOUND_BUFFER_MASK] = boundry;
+		++boundbuffer.free
+			& BOUND_BUFFER_MASK] = boundry;
 	boundbuffer.count = ++boundbuffer.count & BOUND_BUFFER_MASK;
 	return;
 }
@@ -47,14 +47,14 @@ size_t gen_jcc(void* ptr)
 	// calculate offset ...
 	*nextfree++ =
 		(uint8_t*)boundbuffer.bounds[
-			(boundbuffer.free 
-				- (random 
-					% (boundbuffer.count - MIN_LOOP_SIZE)) 
+			(boundbuffer.free
+				- (random
+					% (boundbuffer.count - MIN_LOOP_SIZE))
 				- MIN_LOOP_SIZE)
-			& BOUND_BUFFER_MASK]
+				& BOUND_BUFFER_MASK]
 		- (uint8_t*)ptr + 6;
 
-	return (size_t)((uint8_t*)nextfree - (uint8_t*)ptr);
+			return (size_t)((uint8_t*)nextfree - (uint8_t*)ptr);
 }
 
 size_t gen_sse41_ptest(void* ptr)
@@ -63,7 +63,7 @@ size_t gen_sse41_ptest(void* ptr)
 	uint32_t random = 0;
 	rand_s(&random);
 	//random &= 0xff;
-	*nextfree++ = 0x66;	
+	*nextfree++ = 0x66;
 	if (random & 0x05)
 	{
 		*nextfree++ = 0x40 | (random & 0x05);
@@ -210,9 +210,9 @@ void* gen_xop_set()
 {
 	uint32_t random = 0;
 	void* pages = VirtualAlloc(
-		NULL, 
-		BLOCK_SIZE, 
-		MEM_COMMIT | MEM_RESERVE, 
+		NULL,
+		BLOCK_SIZE,
+		MEM_COMMIT | MEM_RESERVE,
 		PAGE_EXECUTE_READWRITE);
 	uint8_t* nextfree = (uint8_t*)pages;
 	nextfree += gen_header((void*)nextfree);
@@ -224,34 +224,34 @@ void* gen_xop_set()
 		random &= 0x0f;
 		switch (random)
 		{
-			case 0x0f:
-				nextfree += gen_input((void*)nextfree);
-				break;
+		case 0x0f:
+			nextfree += gen_input((void*)nextfree);
+			break;
 
-			case 0x00:
-				nextfree += gen_output((void*)nextfree);
-				break;
+		case 0x00:
+			nextfree += gen_output((void*)nextfree);
+			break;
 
-			case 0x01:
-				nextfree += gen_xop_vprot((void*)nextfree);
-				break;
+		case 0x01:
+			nextfree += gen_xop_vprot((void*)nextfree);
+			break;
 
-			case 0x02:
-				nextfree += gen_xop_vpcom((void*)nextfree);
-				nextfree += gen_xop_vpcmov((void*)nextfree);
-				break;
+		case 0x02:
+			nextfree += gen_xop_vpcom((void*)nextfree);
+			nextfree += gen_xop_vpcmov((void*)nextfree);
+			break;
 
-			case 0x03:
-				if (boundbuffer.count > MIN_LOOP_SIZE * 4)
-				{
-					nextfree += gen_sse41_ptest((void*)nextfree);
-					nextfree += gen_jcc((void*)nextfree);
-					break;
-				}
-
-			default:
-				nextfree += gen_xop_vpperm((void*)nextfree);
+		case 0x03:
+			if (boundbuffer.count > MIN_LOOP_SIZE * 4)
+			{
+				nextfree += gen_sse41_ptest((void*)nextfree);
+				nextfree += gen_jcc((void*)nextfree);
 				break;
+			}
+
+		default:
+			nextfree += gen_xop_vpperm((void*)nextfree);
+			break;
 		}
 
 		if (boundbuffer.count < BOUND_BUFFER_SIZE)
@@ -262,15 +262,15 @@ void* gen_xop_set()
 	*nextfree = 0xc3;
 	while (!*++nextfree
 		&& nextfree < (uint8_t*)pages + BLOCK_SIZE - 1)
-	{	
+	{
 		*nextfree = 0xcc;
 	}
 	return pages;
 }
 
+/*
 static int running = 1;
-
-void thread()
+void thread(void)
 {
 	void* blocks[0x10000];
 	for (int i = 0; i < 0x10000; i++)
@@ -280,9 +280,17 @@ void thread()
 	printf(".");
 
 	running--;
+	return;
+}
+*/
+
+void gen_init(void)
+{
+	memset(&boundbuffer, 0, sizeof(BoundBuffer));
+	return;
 }
 
-
+/*
 int main(void)
 {
 	memset(&boundbuffer, 0, sizeof(BoundBuffer));
@@ -303,3 +311,4 @@ int main(void)
 
 	return 0;
 }
+*/
