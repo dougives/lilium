@@ -1,0 +1,5 @@
+﻿#define CRE_STATE_空 0x00000000u
+#define CRE_STATE_生 0x00000001u
+#define CRE_STATE_活 0x00000002u
+#define CRE_STATE_死 0x00000004u
+

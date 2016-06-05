@@ -24,6 +24,9 @@
     <ClCompile Include="fitness.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="creature.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="codegen.h">
