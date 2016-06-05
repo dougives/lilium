@@ -11,4 +11,5 @@ typedef struct
 } BoundBuffer;
 
 void* gen_xop_set(BoundBuffer* boundbuffer);
-void gen_init(BoundBuffer* boundbuffer);
+DWORD gen_create_boundbuffer(BoundBuffer* bbuf);
+DWORD gen_destroy_boundbuffer(BoundBuffer* bbuf);

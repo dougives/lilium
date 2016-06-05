@@ -116,7 +116,11 @@
     <ClCompile Include="lilium.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="atomic.h" />
     <ClInclude Include="codegen.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="atomic.asm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

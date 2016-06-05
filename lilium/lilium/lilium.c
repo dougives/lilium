@@ -16,11 +16,11 @@ static DWORD lasterror = 0;
 
 DWORD check_file_handle(HANDLE file)
 {
-	PLARGE_INTEGER filesize;
+	LPDWORD filesize;
 	if (file == INVALID_HANDLE_VALUE)
 		return lasterror = GetLastError();
-	if (!GetFileSize(file, &filesize)
-		|| filesize->QuadPart == 0)
+	if (!GetFileSize(file, filesize)
+		|| *filesize == 0)
 		return lasterror = ERROR_HANDLE_EOF;
 	return ERROR_SUCCESS;
 }

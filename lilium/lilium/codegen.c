@@ -29,7 +29,7 @@ static void gen_add_boundry(const void* boundry, BoundBuffer* boundbuffer)
 
 static size_t gen_jcc(const void* ptr, BoundBuffer* boundbuffer)
 {
-	uint32_t* nextfree = (uint8_t*)ptr;
+	uint32_t* nextfree = (uint32_t*)ptr;
 	uint32_t random = 0;
 	rand_s(&random);
 
@@ -37,14 +37,14 @@ static size_t gen_jcc(const void* ptr, BoundBuffer* boundbuffer)
 	random >>= 8;
 
 	// calculate offset ...
-	*nextfree++ =
-		(uint8_t*)boundbuffer->bounds[
+	*nextfree++ = (uint32_t)
+		((uint8_t*)boundbuffer->bounds[
 			(boundbuffer->free
 				- (random
 					% (boundbuffer->count - MIN_LOOP_SIZE))
 				- MIN_LOOP_SIZE)
 				& BOUND_BUFFER_MASK]
-		- (uint8_t*)ptr + 6;
+		- (uint8_t*)ptr + 6);
 
 			return (size_t)((uint8_t*)nextfree - (uint8_t*)ptr);
 }
@@ -206,6 +206,9 @@ void* gen_xop_set(BoundBuffer* boundbuffer)
 		BLOCK_SIZE,
 		MEM_COMMIT | MEM_RESERVE,
 		PAGE_EXECUTE_READWRITE);
+	if (pages == NULL)
+		return NULL;
+
 	uint8_t* nextfree = (uint8_t*)pages;
 	nextfree += gen_header((void*)nextfree);
 
@@ -260,6 +263,28 @@ void* gen_xop_set(BoundBuffer* boundbuffer)
 	return pages;
 }
 
+DWORD gen_create_boundbuffer(BoundBuffer* bbuf)
+{
+	if (bbuf != NULL)
+		return ERROR_BAD_ARGUMENTS;
+
+	bbuf = (BoundBuffer*)calloc(1, sizeof(BoundBuffer));
+	if (bbuf == NULL)
+		return ERROR_INVALID_HANDLE;
+
+	return ERROR_SUCCESS;
+}
+
+DWORD gen_destroy_boundbuffer(BoundBuffer* bbuf)
+{
+	if (bbuf == NULL)
+		return ERROR_INVALID_HANDLE_STATE;
+
+	free((void*)bbuf);
+
+	return ERROR_SUCCESS;
+}
+
 /*
 static int running = 1;
 void thread(void)
@@ -274,15 +299,15 @@ void thread(void)
 	running--;
 	return;
 }
-*/
 
-void gen_init(BoundBuffer* boundbuffer)
+
+void gen_init()			// (BoundBuffer* boundbuffer)
 {
-	memset(boundbuffer, 0, sizeof(BoundBuffer));
+	// memset(boundbuffer, 0, sizeof(BoundBuffer));
 	return;
 }
 
-/*
+
 int main(void)
 {
 	memset(&boundbuffer, 0, sizeof(BoundBuffer));
