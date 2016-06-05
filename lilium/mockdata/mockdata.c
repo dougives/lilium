@@ -9,12 +9,11 @@
 #include <stdlib.h>
 #include <Windows.h>
 
-#define FILENAME "f:\\lilium\\mock.data"
-#define SIZE ((0x1000 >> 2) - 8)
+#define FILENAME "f:\\lilium\\mock.solution"
+#define SIZE (0x40000000 >> 2)
 
 int main(void)
 {
-
 	FILE* file;
 	int error = fopen_s(&file, FILENAME, "w+");
 	uint32_t random;

@@ -159,32 +159,34 @@ void* gen_xop_set()
 	return pages;
 }
 
-
-
+static int running = 1;
 
 void thread()
 {
-	void* blocks[0x1000];
-	for (int i = 0; i < 0x1000; i++)
+	void* blocks[0x10000];
+	for (int i = 0; i < 0x10000; i++)
 	{
 		blocks[i] = gen_xop_set();
 	}
 	printf(".");
+
+	running--;
 }
+
 
 int main(void)
 {
 	LPDWORD threadid = NULL;
 	CreateThread(NULL, 0, thread, NULL, 0, threadid);
-	CreateThread(NULL, 0, thread, NULL, 0, threadid);
-	CreateThread(NULL, 0, thread, NULL, 0, threadid);
-	CreateThread(NULL, 0, thread, NULL, 0, threadid);
-	CreateThread(NULL, 0, thread, NULL, 0, threadid);
-	CreateThread(NULL, 0, thread, NULL, 0, threadid);
-	CreateThread(NULL, 0, thread, NULL, 0, threadid);
-	CreateThread(NULL, 0, thread, NULL, 0, threadid);
-	while (true)
-		Sleep(100);
+	//CreateThread(NULL, 0, thread, NULL, 0, threadid);
+	//CreateThread(NULL, 0, thread, NULL, 0, threadid);
+	//CreateThread(NULL, 0, thread, NULL, 0, threadid);
+	//CreateThread(NULL, 0, thread, NULL, 0, threadid);
+	//CreateThread(NULL, 0, thread, NULL, 0, threadid);
+	//CreateThread(NULL, 0, thread, NULL, 0, threadid);
+	//CreateThread(NULL, 0, thread, NULL, 0, threadid);
+	while (running)
+		Sleep(500);
 
 	return 0;
 }
