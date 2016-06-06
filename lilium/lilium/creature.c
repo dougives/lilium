@@ -40,6 +40,12 @@ static bool running = false;
 static void* inpdata = NULL;
 static size_t inpsize = 0;
 
+static void cre_exec_thread(Creature* cre)
+{
+	crehelper_fill_xmmregs(inpdata);
+	// ((void(*)(void*, void*, size_t))cre->block)(inpdata, cre->output, )
+}
+
 static void cre_pool_thread()
 {
 	running = true;
@@ -57,12 +63,14 @@ static void cre_pool_thread()
 		cre->state = CRE_STATE_活;
 		
 		// need to load start of file into xmm regs
-		crehelper_fill_xmmregs(inpdata);
+		// crehelper_fill_xmmregs(inpdata);
 
 		// DWORD threadid = 0;
 		// CreateThread(NULL, 0, cre->block, NULL, 0, &threadid);
 		////////////////////////////////////////////////////
 	}
+
+	return;
 }
 
 DWORD cre_stop_pool()
