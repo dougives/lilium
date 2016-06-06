@@ -38,6 +38,9 @@
     <ClInclude Include="crehelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="creature.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="atomic.asm">

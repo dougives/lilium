@@ -119,6 +119,7 @@
   <ItemGroup>
     <ClInclude Include="atomic.h" />
     <ClInclude Include="codegen.h" />
+    <ClInclude Include="creature.h" />
     <ClInclude Include="crehelper.h" />
   </ItemGroup>
   <ItemGroup>

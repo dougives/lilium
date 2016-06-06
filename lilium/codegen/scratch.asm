@@ -105,6 +105,15 @@ scratch_asm proc
 
 
 scratch_exit:
+	int 3	
+	int 3
+	int 3
+	int 3
+	int 3	
+	int 3
+	int 3
+	int 3
+	mov rax, rdx
 	ret
 
 scratch_asm endp

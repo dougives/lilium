@@ -252,7 +252,12 @@ void* gen_xop_set(BoundBuffer* boundbuffer)
 		boundbuffer->free = ++boundbuffer->free & BOUND_BUFFER_MASK;
 	}
 
-	*nextfree = 0xc3;
+	// return pointer to end of output ...
+	// mov rax, rdx
+	// ret
+
+	*((uint32_t*)nextfree++) = 0xc3c28b48u;
+	nextfree--;
 	while (!*++nextfree
 		&& nextfree < (uint8_t*)pages + BLOCK_SIZE - 1)
 	{
