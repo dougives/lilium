@@ -25,7 +25,7 @@ void fit_report(uint64_t fitness)
 	return;
 }
 
-void fit_func_variance(Creature* cre, size_t outpcount)
+uint64_t fit_func_silly_variance(Creature* cre, size_t outpcount)
 {
 	if (!fit_func_check(cre, outpcount))
 	{
@@ -35,21 +35,14 @@ void fit_func_variance(Creature* cre, size_t outpcount)
 
 	outpcount >>= 1;
 
+	int64_t result = 0;
 	__m128i* outp = (__m128i*)cre->output;
-	__m128i temp = _mm_setzero_si128();
 	__m128i* solu = (__m128i*)solution;
 	__m128i zero = _mm_setzero_si128();
 	__m128i ones = { 1, 1 };
-	__m128i mulhi = _mm_setzero_si128();
-	__m128i mullo = _mm_setzero_si128();
 	__m128i cmp = _mm_setzero_si128();
-	//__m256i product = _mm256_setzero_si256();
-	//__m256i workingsum = _mm256_setzero_si256();
-	//__m256i totalsum = _mm256_setzero_si256();
-	__m128i wsumhi = _mm_setzero_si128();
-	__m128i wsumlo = _mm_setzero_si128();
-	__m128i tsumhi = _mm_setzero_si128();
-	__m128i tsumlo = _mm_setzero_si128();
+	__m128i temp = _mm_setzero_si128();
+	__m128i sum = _mm_setzero_si128();
 
 	for (size_t i = 0; i < outpcount; i++)
 	{
@@ -58,26 +51,19 @@ void fit_func_variance(Creature* cre, size_t outpcount)
 		cmp = _mm_cmpgt_epi64(zero, temp);
 		temp = _mm_xor_si128(temp, cmp);
 		temp = _mm_add_epi64(temp, ones);
-		// should be abs now, square...
-		mullo = _mm_mul_epu32(temp, temp);
-		temp = _mm_srli_epi64(temp, 32);
-		mulhi = _mm_mul_epu32(temp, temp);
-		// product.m256i_i64[0] = mullo.m128i_i64[0];
-		// product.m256i_i64[1] = mullo.m128i_i64[1];
-		// product.m256i_i64[2] = mulhi.m128i_i64[0];
-		// product.m256i_i64[3] = mulhi.m128i_i64[1];
-		// summing > 0x1000 could overflow
-		// so we need to break the shifts into
-		// small steps to do a whole gig
-		// so every 0x1000, >> by 12
-		
-		wsumlo = _mm_add_
-
-		if (i & 0x0fff == 0x0fff)
-		{
-			//_mm_
-		}
+		// should be abs now, saturate into 32 bits
+		temp = _mm_add_epi64(temp, _mm_srli_epi64(temp, 32));
+		// to the pow of 2
+		temp = _mm_mul_epi32(temp, temp);
+		// saturate again ...
+		temp = _mm_add_epi64(temp, _mm_srli_epi64(temp, 32));
+		sum = _mm_add_epi64(sum, temp);
 	}
+
+	// average
+	result = sum.m128i_i64[0] + sum.m128i_i64[1];
+	result >>= _tzcnt_u64(outpcount);
+	return result;
 }
 
 DWORD fit_init(uint64_t* sol, size_t cnt)

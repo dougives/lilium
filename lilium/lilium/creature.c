@@ -135,12 +135,12 @@ DWORD cre_init(size_t poolsize, const HANDLE inputdata, const size_t inputsize, 
 {
 	if (inputdata == NULL 
 		|| inputsize < MIN_INPUT_SIZE 
-		|| outputsize < MIN_OUTPUT_SIZE)
+		|| outputsize < MIN_OUTPUT_SIZE
+		|| poolsize < 1 
+		|| _mm_popcnt_u32((uint32_t)poolsize) != 1
+		|| _mm_popcnt_u32((uint32_t)inputsize) != 1
+		|| _mm_popcnt_u32((uint32_t)outputsize) != 1) // is not pow of 2?
 		return ERROR_BAD_ARGUMENTS;
-
-	if (poolsize < 1 
-		|| _mm_popcnt_u32((uint32_t)poolsize) != 1) // is not pow of 2?
-		return ERROR_BAD_LENGTH;
 
 	inpdata = inputdata;
 	inpsize = inputsize;
