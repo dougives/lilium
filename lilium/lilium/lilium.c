@@ -16,7 +16,7 @@ static DWORD lasterror = 0;
 
 DWORD check_file_handle(HANDLE file)
 {
-	LPDWORD filesize;
+	LPDWORD filesize = NULL;
 	if (file == INVALID_HANDLE_VALUE)
 		return lasterror = GetLastError();
 	if (!GetFileSize(file, filesize)
@@ -75,6 +75,8 @@ DWORD close_files(void)
 		|| CloseHandle(datafile)
 		|| CloseHandle(solutionfile))
 		return lasterror = (int)GetLastError();
+
+	return ERROR_SUCCESS;
 }
 
 int main(void)

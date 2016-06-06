@@ -35,10 +35,16 @@
     <ClInclude Include="atomic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="crehelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="atomic.asm">
+    <MASM Include="atomic.asm">
       <Filter>Source Files</Filter>
-    </None>
+    </MASM>
+    <MASM Include="crehelper.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
   </ItemGroup>
 </Project>
