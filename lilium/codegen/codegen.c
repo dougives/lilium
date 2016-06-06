@@ -118,26 +118,24 @@ size_t gen_header(void* ptr)
 {
 	// rcx -> rsi -> start of input data
 	// rdx -> rdi -> start of output data
-	// r8  -> rcx -> size of data in bytes
+	// r8  -> size of input data in bytes
+	// r9  -> size of output data in bytes
+
 	// rax -> input end
 	// rdx -> output end
 	// for loading/storing
 
-	// push rsi
-	// push rdi
-	// push rbx
-	// mov rsi, rcx
-	// mov rdi, rdx
-	// mov rcx, r8
-	// mov rax, rcx
-	// mov rdx, rcx
-	// add rax, rsi
-	// add rdx, rdi
+	//	mov rsi, rcx
+	//	mov rdi, rdx
+	//	mov rax, r8
+	//	mov rdx, r9
+	//	add rax, rsi
+	//	add rdx, rdi
 
 	uint64_t* nextfree = (uint64_t*)ptr;
-	*nextfree++ = 0x8b48f18b48535756uL;
-	*nextfree++ = 0x48c18b48c88b49fauL;
-	*nextfree++ = 0xd70348c60348d18buL;
+	*nextfree++ = 0x8b49fa8b48f18b48uL;
+	*nextfree++ = 0x48c60348d18b49c0uL;
+	*((uint16_t*)nextfree++) = 0xd703u;
 	return (size_t)((uint8_t*)nextfree - (uint8_t*)ptr);
 }
 

@@ -43,7 +43,9 @@ static size_t inpsize = 0;
 static void cre_exec_thread(Creature* cre)
 {
 	crehelper_fill_xmmregs(inpdata);
-	// ((void(*)(void*, void*, size_t))cre->block)(inpdata, cre->output, )
+	((void(*)(void*, void*, size_t))cre->block)(
+		(uint8_t*)inpdata + 0x100, 
+		cre->output, )
 }
 
 static void cre_pool_thread()

@@ -2,14 +2,10 @@
 
 scratch_asm proc
 
-	push rsi
-	push rdi
-	push rbx
 	mov rsi, rcx
 	mov rdi, rdx
-	mov rcx, r8
-	mov rax, rcx
-	mov rdx, rcx
+	mov rax, r8
+	mov rdx, r9
 	add rax, rsi
 	add rdx, rdi
 	
