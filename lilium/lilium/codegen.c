@@ -130,7 +130,6 @@ static size_t gen_header(const void* ptr)
 	*((uint16_t*)nextfree++) = 0xd703u;
 	return (size_t)((uint8_t*)nextfree - (uint8_t*)ptr);
 }
-}
 
 static size_t gen_xop_vpcmov(const void* ptr)
 {
